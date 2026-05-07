@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
 from sqlalchemy import text
+import re
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -44,15 +45,30 @@ def create_app():
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
+        error = []
+
         if request.method == 'POST':
-            username = request.form['username']
-            email = request.form['email']
-            password = request.form['password']
-            confirm = request.form['confirm_password']
+            username = (request.form['username']or '').strip()
+            email = (request.form['email']).strip()
+            password = request.form['password']or ''
+            confirm = request.form['confirm_password']or ''
             role = request.form['role']
-            print("Form Submitted", username, email, password, confirm, role)
-            return f"receive data - {email}"
-        return render_template("auth/login.html")
+
+            if not(3 <= len(username) <= 64):
+                error.append(f"Username {username} must be between 3 and 64 characters")
+            if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+                error.append(f"Email {email} must be a valid email address")
+            if len(password) < 6:
+                error.append(f"Password must be at least 6 characters")
+            if password != confirm:
+                error.append(f"Password and confirm password must match")
+
+            if not error:
+                return f'valid input received'
+
+
+            #return f"receive data - {email}"
+        return render_template("auth/login.html", error=error)
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
