@@ -7,6 +7,16 @@
 </head>
 <body>
 
+{% if error %}
+<div>
+    <ul>
+    {% for e in error %}
+        <li>{{ e }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
 <div class="container">
     <div class="form-box active" id="login-form">
         <form action="">
