@@ -16,14 +16,14 @@
             <label for="login-password"></label><input type="password" name="password" id="login-password" placeholder="password" required>
             <button type="submit" name="login">Login</button>
 
-            <p>Don't have an account? <a href="#">Register</a></p>
+            <p>Don't have an account? <a href="#" onclick="showForm('register-form')">Register</a></p>
         </form>
     </div>
 
-    <div class="form-box" id="Register-form">select
+    <div class="form-box" id="register-form">
         <form action="">
 
-            <h2>Login</h2>
+            <h2>Register</h2>
             <label for="register-email"></label><input type="email" name="email" id="register-email" placeholder="Email" required>
             <label for="register-password"></label><input type="password" name="password" id="register-password" placeholder="password" required>
             <label for="role"></label><select name="role" id="role">
@@ -33,7 +33,7 @@
         </select>
 
             <button type="submit" name="register">Register</button>
-            <p>Already have an account? <a href="#">Login</a></p>
+            <p>Already have an account? <a href="#" onclick="showForm('login-form')">Login</a></p>
         </form>
     </div>
 
