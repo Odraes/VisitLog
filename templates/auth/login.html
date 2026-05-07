@@ -21,11 +21,13 @@
     </div>
 
     <div class="form-box" id="register-form">
-        <form action="">
+        <form action="/register" method="POST" novalidate>
 
             <h2>Register</h2>
+            <label for="register-username"></label><input type="text" name="username" id="register-username" placeholder="Username" required>
             <label for="register-email"></label><input type="email" name="email" id="register-email" placeholder="Email" required>
             <label for="register-password"></label><input type="password" name="password" id="register-password" placeholder="password" required>
+            <label for="register-confirm-password"></label><input type="password" name="confirm_password" id="register-confirm-password" placeholder="confirm password" required>
             <label for="role"></label><select name="role" id="role">
             <option value="">--Select Role--</option>
             <option value="owner">owner</option>
