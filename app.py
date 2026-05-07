@@ -1,8 +1,10 @@
-from flask import Flask, render_template, url_for, request
+import re
+from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin
 from sqlalchemy import text
-import re
+from sqlalchemy.exc import IntegrityError
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -48,11 +50,12 @@ def create_app():
         error = []
 
         if request.method == 'POST':
-            username = (request.form['username']or '').strip()
-            email = (request.form['email']).strip()
-            password = request.form['password']or ''
-            confirm = request.form['confirm_password']or ''
-            role = request.form['role']
+            # use .get to avoid KeyError when a field is missing
+            username = (request.form.get('username') or '').strip()
+            email = (request.form.get('email') or '').strip()
+            password = request.form.get('password') or ''
+            confirm = request.form.get('confirm_password') or ''
+            role = request.form.get('role') or ''
 
             if not(3 <= len(username) <= 64):
                 error.append(f"Username {username} must be between 3 and 64 characters")
@@ -64,10 +67,22 @@ def create_app():
                 error.append(f"Password and confirm password must match")
 
             if not error:
+                try:
+                    pwd_hash = generate_password_hash(password)
+                    user = User(username=username, email=email, password_hash=pwd_hash)
+                    db.session.add(user)
+                    db.session.commit()
+
+                    return redirect(url_for('login'))
+
+                except IntegrityError:
+                    db.session.rollback()
+                    error.append(f"Username or email already exists")
+
+
                 return f'valid input received'
 
 
-            #return f"receive data - {email}"
         return render_template("auth/login.html", error=error)
 
     @app.route('/login', methods=['GET', 'POST'])
