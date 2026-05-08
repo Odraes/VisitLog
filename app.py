@@ -5,17 +5,10 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from urllib.parse import urlparse, urljoin
+
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-
-
-def is_safe_url(target):
-    host_url = request.host_url
-    ref_url = urlparse(host_url)
-    test_url = urlparse(urljoin(host_url, target))
-    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,12 +41,6 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-
-    def _is_safe_local_path(target:str) -> bool:
-        if not target:
-            return False
-        parts = urlparse(target)
-        return parts.scheme == '' and parts.netloc == '' and target.startswith('/')
 
     @app.route('/')
     def index():
@@ -118,11 +105,6 @@ def create_app():
                     error.append("Invalid email or password")
                 else:
                     login_user(user)
-                    next_url = request.form.get('next') or request.args.get('next') or''
-                    if _is_safe_local_path(next_url):
-                        return redirect(next_url)
-                    return redirect(url_for('dashboard'))
-
                     return redirect(url_for('dashboard'))
 
         return render_template("auth/login.html", error=error)
