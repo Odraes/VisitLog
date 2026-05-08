@@ -1,12 +1,11 @@
 import re
-from logging import error
-
 from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
+
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -48,6 +47,7 @@ def create_app():
         return render_template("auth/login.html")
 
     @app.route('/dashboard')
+    @login_required
     def dashboard():
         return render_template("dashboard/dashboard.html")
 
