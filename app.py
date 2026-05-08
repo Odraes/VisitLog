@@ -1,7 +1,9 @@
 import re
+from logging import error
+
 from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin, login_user
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,7 +15,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(60), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
 
     def __repr__(self):
         return f"<User {self.username}>"
@@ -44,6 +46,10 @@ def create_app():
     @app.route('/')
     def index():
         return render_template("auth/login.html")
+
+    @app.route('/dashboard')
+    def dashboard():
+        return render_template("dashboard/dashboard.html")
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
@@ -79,10 +85,6 @@ def create_app():
                     db.session.rollback()
                     error.append(f"Username or email already exists")
 
-
-                return f'valid input received'
-
-
         return render_template("auth/login.html", error=error)
 
     @app.route('/login', methods=['GET', 'POST'])
@@ -94,22 +96,22 @@ def create_app():
             password = request.form.get('password') or ''
 
             if not email:
-                error.append(f"Email {email} must be a valid email address")
+                error.append("Email must be provided")
             if not password:
-                error.append(f"Password must be at least 6 characters")
+                error.append("Password must be provided")
             if not error:
                 user = User.query.filter_by(email=email).first()
-            if not user or not check_password_hash(user.password, password):
-                error.append(f"Invalid email or password")
-            else:
-                login_user(user)
+                if not user or not check_password_hash(user.password_hash, password):
+                    error.append("Invalid email or password")
+                else:
+                    login_user(user)
+                    return redirect(url_for('dashboard'))
 
-
-        return render_template("auth/login.html")
+        return render_template("auth/login.html", error=error)
 
     @login_manager.user_loader
     def load_user(user_id):
-        return None
+        return User.query.get(int(user_id))
 
     return app
 
