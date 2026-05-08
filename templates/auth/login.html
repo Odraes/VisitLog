@@ -41,11 +41,12 @@
             <label for="register-email"></label><input type="email" name="email" id="register-email" placeholder="Email" required>
             <label for="register-password"></label><input type="password" name="password" id="register-password" placeholder="password" required>
             <label for="register-confirm-password"></label><input type="password" name="confirm_password" id="register-confirm-password" placeholder="confirm password" required>
-            <label for="role"></label><select name="role" id="role">
-            <option value="">--Select Role--</option>
-            <option value="owner">owner</option>
-            <option value="guard">guard</option>
-        </select>
+            <label for="role"></label>
+            <select name="role" id="role">
+                <option value="">--Select Role--</option>
+                <option value="owner">owner</option>
+                <option value="guard">guard</option>
+            </select>
 
             <button type="submit" name="register">Register</button>
             <p>Already have an account? <a href="#" onclick="showForm('login-form')">Login</a></p>
