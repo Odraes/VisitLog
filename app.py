@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(64), nullable=False)
 
     def __repr__(self):
         return f"<User {self.username}>"
@@ -75,7 +76,7 @@ def create_app():
             if not error:
                 try:
                     pwd_hash = generate_password_hash(password)
-                    user = User(username=username, email=email, password_hash=pwd_hash)
+                    user = User(username=username, email=email, password_hash=pwd_hash, role=role)
                     db.session.add(user)
                     db.session.commit()
 
