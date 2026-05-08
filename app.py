@@ -1,5 +1,5 @@
 import re
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import text
@@ -108,6 +108,12 @@ def create_app():
                     return redirect(url_for('dashboard'))
 
         return render_template("auth/login.html", error=error)
+
+    @app.route('/logout')
+    def logout():
+        logout_user()
+        flash('You have been logged out', 'success')
+        return redirect(url_for('login'))
 
     @login_manager.user_loader
     def load_user(user_id):
