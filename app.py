@@ -51,6 +51,14 @@ def create_app():
     @login_required
     def dashboard():
         return render_template("dashboard/dashboard.html")
+    @app.route('/owner')
+    @login_required
+    def owner():
+        return render_template("dashboard/owner.html")
+    @app.route('/guard')
+    @login_required
+    def guard():
+        return render_template("dashboard/guard.html")
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
@@ -106,7 +114,9 @@ def create_app():
                     error.append("Invalid email or password")
                 else:
                     login_user(user)
-                    return redirect(url_for('dashboard'))
+                    if user.role == 'owner':
+                        return redirect(url_for('owner'))
+                    return redirect(url_for('guard'))
 
         return render_template("auth/login.html", error=error)
 
