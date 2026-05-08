@@ -87,6 +87,24 @@ def create_app():
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
+        error = []
+
+        if request.method == 'POST':
+            email = (request.form.get('email') or '').strip()
+            password = request.form.get('password') or ''
+
+            if not email:
+                error.append(f"Email {email} must be a valid email address")
+            if not password:
+                error.append(f"Password must be at least 6 characters")
+            if not error:
+                user = User.query.filter_by(email=email).first()
+            if not user or not check_password_hash(user.password, password):
+                error.append(f"Invalid email or password")
+            else:
+                login_user(user)
+
+
         return render_template("auth/login.html")
 
     @login_manager.user_loader
