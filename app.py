@@ -46,18 +46,14 @@ def create_app():
     def index():
         return render_template("auth/login.html")
 
-    @app.route('/dashboard')
-    @login_required
-    def dashboard():
-        return render_template("dashboard/dashboard.html")
     @app.route('/owner')
     @login_required
     def owner():
-        return render_template("dashboard/owner.html")
+        return render_template("dashboard/owner/dashboard.html")
     @app.route('/guard')
     @login_required
     def guard():
-        return render_template("dashboard/guard.html")
+        return render_template("dashboard/guard/dashboard.html")
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
