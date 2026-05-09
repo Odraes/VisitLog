@@ -17,18 +17,31 @@
 
     <main>
     <div class="container">
-        <div class="form-box">
-            <a href="/check-in">
+        <div class="form-box active" id="form-box">
+            <a href="/owner" onclick="showForm('check-in')">
                 <button class="btn">Check In</button>
             </a>
-            <a href="/checl-out">
+            <a href="/owner" onclick="showForm('check-out')">
                 <button class="btn">Check Out</button>
             </a>
-            <a href="/view-logs">
+            <a href="/owner" onclick="showForm('view Logs')">
                 <button class="btn">View Logs</button>
             </a>
         </div>
     </div>
+
+        <!-- Check In -->
+        <div class="container">
+            <div class="form-box " id="check-in">
+
+
+                <a href="" onclick="showForm('form-box')">
+                    <button class="btn">go back</button>
+                </a>
+            </div>
+        </div>
+
+
     </main>
 <script src="../../../static/Java/script.js"></script>
 </body>
