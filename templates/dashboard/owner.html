@@ -2,10 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Owner Dashboard</title>
+    <link rel="stylesheet" href="../../static/css/owner.css">
 </head>
 <body>
-<h2>this is the Owner dashboard</h2>
-<a href="/logout">Logout</a>
+
+    <header>
+    <a href="/logout">Logout</a>
+    </header>
+
+    <div class="container">
+        <div class="form-box">
+            <a href="/check-in">
+                <button class="btn">Check In</button>
+            </a>
+            <a href="/checl-out">
+                <button class="btn">Check Out</button>
+            </a>
+            <a href="/view-logs">
+                <button class="btn">View Logs</button>
+            </a>
+        </div>
+    </div>
+
+<script src="../../static/Java/script.js"></script>
 </body>
 </html>
