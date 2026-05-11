@@ -21,6 +21,86 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return f"<User {self.username}>"
 
+    def set_password(self, password):
+        """Hash and set the user's password."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        """Check a plaintext password against the stored hash."""
+        return check_password_hash(self.password_hash, password)
+
+    @property
+    def password(self):
+        raise AttributeError("Password is write-only")
+
+
+# --- Authentication service abstraction and implementation ---
+class AuthService(abc.ABC):
+    @abc.abstractmethod
+    def register(self, username, email, password, role):
+        """Register a user. Return (user, errors)."""
+        pass
+
+    @abc.abstractmethod
+    def authenticate(self, email, password):
+        """Authenticate a user. Return user or None."""
+        pass
+
+
+class SqlAlchemyAuthService(AuthService):
+    """AuthService implementation using SQLAlchemy models and db.session."""
+    def register(self, username, email, password, role):
+        errors = []
+        if not(3 <= len(username) <= 64):
+            errors.append(f"Username {username} must be between 3 and 64 characters")
+        if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+            errors.append(f"Email {email} must be a valid email address")
+        if len(password) < 6:
+            errors.append("Password must be at least 6 characters")
+        if errors:
+            return None, errors
+        try:
+            user = User(username=username, email=email, role=role)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            return user, []
+        except IntegrityError:
+            db.session.rollback()
+            return None, ["Username or email already exists"]
+
+    def authenticate(self, email, password):
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            return user
+        return None
+
+
+# --- Dashboard abstraction and concrete implementations ---
+class BaseDashboard(abc.ABC):
+    @abc.abstractmethod
+    def render_redirect(self):
+        """Return a Flask redirect for the dashboard."""
+        pass
+
+
+class OwnerDashboard(BaseDashboard):
+    def render_redirect(self):
+        return redirect(url_for('owner'))
+
+
+class GuardDashboard(BaseDashboard):
+    def render_redirect(self):
+        return redirect(url_for('guard'))
+
+
+class DashboardFactory:
+    @staticmethod
+    def for_role(role):
+        if role == 'owner':
+            return OwnerDashboard()
+        return GuardDashboard()
+
 
 def create_app():
     app = Flask(__name__)
@@ -44,6 +124,9 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
+    # services
+    auth_service = SqlAlchemyAuthService()
 
 
     #HOME PAGE
@@ -75,27 +158,15 @@ def create_app():
             confirm = request.form.get('confirm_password') or ''
             role = request.form.get('role') or ''
 
-            if not(3 <= len(username) <= 64):
-                error.append(f"Username {username} must be between 3 and 64 characters")
-            if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
-                error.append(f"Email {email} must be a valid email address")
-            if len(password) < 6:
-                error.append(f"Password must be at least 6 characters")
             if password != confirm:
-                error.append(f"Password and confirm password must match")
+                error.append("Password and confirm password must match")
 
             if not error:
-                try:
-                    pwd_hash = generate_password_hash(password)
-                    user = User(username=username, email=email, password_hash=pwd_hash, role=role)
-                    db.session.add(user)
-                    db.session.commit()
-
+                user, errs = auth_service.register(username=username, email=email, password=password, role=role)
+                if errs:
+                    error.extend(errs)
+                else:
                     return redirect(url_for('login'))
-
-                except IntegrityError:
-                    db.session.rollback()
-                    error.append(f"Username or email already exists")
 
         return render_template("auth/login.html", error=error)
 
@@ -114,14 +185,13 @@ def create_app():
             if not password:
                 error.append("Password must be provided")
             if not error:
-                user = User.query.filter_by(email=email).first()
-                if not user or not check_password_hash(user.password_hash, password):
+                user = auth_service.authenticate(email=email, password=password)
+                if not user:
                     error.append("Invalid email or password")
                 else:
                     login_user(user)
-                    if user.role == 'owner':
-                        return redirect(url_for('owner'))
-                    return redirect(url_for('guard'))
+                    dashboard = DashboardFactory.for_role(user.role)
+                    return dashboard.render_redirect()
 
         return render_template("auth/login.html", error=error)
 
