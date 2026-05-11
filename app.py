@@ -32,6 +32,7 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'login'
 
+    #DATABASE HEALTH CHECK
     @app.route('/health/db')
     def health_db():
         try:
@@ -43,6 +44,7 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
 
     #HOME PAGE
     @app.route('/')
@@ -58,6 +60,8 @@ def create_app():
     @login_required
     def guard():
         return render_template("dashboard/guard/dashboard.html")
+
+
     #REGISTER DASHBOARD
     @app.route('/register', methods=['GET', 'POST'])
     def register():
@@ -94,6 +98,8 @@ def create_app():
                     error.append(f"Username or email already exists")
 
         return render_template("auth/login.html", error=error)
+
+
     #LOGIN DASHBOARD
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -118,6 +124,8 @@ def create_app():
                     return redirect(url_for('guard'))
 
         return render_template("auth/login.html", error=error)
+
+
     #LOG-OUT DASHBOARD
     @app.route('/logout')
     def logout():
@@ -125,6 +133,7 @@ def create_app():
         flash('You have been logged out', 'success')
         return redirect(url_for('login'))
 
+    #LOGIN MANAGER
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
