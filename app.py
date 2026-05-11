@@ -80,7 +80,6 @@ class SqlAlchemyAuthService(AuthService):
 class BaseDashboard(abc.ABC):
     @abc.abstractmethod
     def render_redirect(self):
-        """Return a Flask redirect for the dashboard."""
         pass
 
 
