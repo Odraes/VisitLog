@@ -1,21 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Owner Dashboard</title>
-    <link rel="stylesheet" href="../../../static/css/dashboard.css">
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
 
-    <header>
-        <div class="header-container">
-            <a href="/logout">
-                <button class="header-btn">Logout</button>
-            </a>
-        </div>
-    </header>
-
-    <main>
     <div class="container">
         <div class="form-box active" id="form-box">
             <a href="/owner" onclick="showForm('check-in')">
@@ -40,9 +25,4 @@
                 </a>
             </div>
         </div>
-
-
-    </main>
-<script src="../../../static/Java/script.js"></script>
-</body>
-</html>
+{% endblock %}
