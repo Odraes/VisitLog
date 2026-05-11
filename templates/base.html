@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Visit Vault</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='../static/css/dashboard.css') }}">
+</head>
+<body>
+
+<header>
+    <div class="header-container">
+        <a href="{{ url_for('logout')}}">
+            <button class="header-btn">Logout</button>
+        </a>
+    </div>
+</header>
+
+<main>
+    <div class="container">
+    <!-- content -->
+        {% block content %}
+        {% endblock %}
+
+    </div>
+</main>
+<script src="../static/Java/script.js"></script>
+</body>
+</html>
