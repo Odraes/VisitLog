@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-
+#DATABASE
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
@@ -42,19 +42,22 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
+    #HOME PAGE
     @app.route('/')
     def index():
         return render_template("auth/login.html")
-
+    #OWNER DASHBOARD
     @app.route('/owner')
     @login_required
     def owner():
         return render_template("dashboard/owner/dashboard.html")
+    #GUARD DASHBOARD
     @app.route('/guard')
     @login_required
     def guard():
         return render_template("dashboard/guard/dashboard.html")
-
+    #REGISTER DASHBOARD
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         error = []
@@ -90,7 +93,7 @@ def create_app():
                     error.append(f"Username or email already exists")
 
         return render_template("auth/login.html", error=error)
-
+    #LOGIN DASHBOARD
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         error = []
@@ -114,7 +117,7 @@ def create_app():
                     return redirect(url_for('guard'))
 
         return render_template("auth/login.html", error=error)
-
+    #LOG-OUT DASHBOARD
     @app.route('/logout')
     def logout():
         logout_user()
