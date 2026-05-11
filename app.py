@@ -151,7 +151,6 @@ def create_app():
         error = []
 
         if request.method == 'POST':
-            # use .get to avoid KeyError when a field is missing
             username = (request.form.get('username') or '').strip()
             email = (request.form.get('email') or '').strip()
             password = request.form.get('password') or ''
