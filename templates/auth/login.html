@@ -20,9 +20,9 @@
             </ul>
         </div>
     {% endif %}
-
+<!-- login form -->
     <div class="form-box active" id="login-form">
-        <form action="/login" method="POST" novalidate>
+        <form action="{{ url_for('login') }}" method="POST" novalidate>
 
             <h2>Login</h2>
             <label for="login-email"></label><input type="email" name="email" id="login-email" placeholder="Email" required>
@@ -33,8 +33,9 @@
         </form>
     </div>
 
+<!-- login form -->
     <div class="form-box" id="register-form">
-        <form action="/register" method="POST" novalidate>
+        <form action="{{ url_for('register') }}" method="POST" novalidate>
 
             <h2>Register</h2>
             <label for="register-username"></label><input type="text" name="username" id="register-username" placeholder="Username" required>
