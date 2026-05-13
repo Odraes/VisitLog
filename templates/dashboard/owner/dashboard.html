@@ -3,22 +3,12 @@
 
 
         <div class="form-box active" id="form-box">
+            <h2>Visitor Info</h2>
+            <label for="name"></label><input type="text" name="name" id="name" placeholder="name" required>
+            <label for="contact"></label><input type="text" name="contact" id="contact" placeholder="contact" required>
+            <label for="visitor-password"></label><input type="password" name="password" id="register-password" placeholder="password" required>
 
-
-            <a href="/owner" onclick="showForm('view Logs')">
-                <button class="btn">View Logs</button>
-            </a>
+            <button type="submit" name="submit">Submit</button>
         </div>
-    </div>
 
-        <!-- Check In -->
-        <div class="container">
-            <div class="form-box " id="check-in">
-
-
-                <a href="" onclick="showForm('form-box')">
-                    <button class="btn">go back</button>
-                </a>
-            </div>
-        </div>
 {% endblock %}

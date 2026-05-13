@@ -7,12 +7,37 @@
     font-family: 'Poppins', sans-serif;
 }
 body{
+    background: linear-gradient(to right, #e2e2e2, #c9d6ff);
+    color: #333;
+}
+header{
+    background-color: black;
+}
+.header-container{
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    padding: 15px;
+}
+.header-btn{
+    width: 100%;
+    background: #7393ec;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 500;
+    transition: 0.5s;
+    margin-right: auto;
+}
+
+main{
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(to right, #e2e2e2, #c9d6ff);
-    color: #333;
+
 }
 .error{
     justify-content: center;
@@ -59,7 +84,7 @@ input, select{
     color: #333;
     margin-bottom: 20px;
 }
-button{
+div > button{
     width: 100%;
     padding: 12px;
     background: #7393ec;
