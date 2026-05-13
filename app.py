@@ -48,7 +48,6 @@ class AuthService(abc.ABC):
 
 
 class SqlAlchemyAuthService(AuthService):
-    """AuthService implementation using SQLAlchemy models and db.session."""
     def register(self, username, email, password, role):
         errors = []
         if not(3 <= len(username) <= 64):
