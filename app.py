@@ -10,7 +10,7 @@ import abc
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-#DATABASE
+#LOGIN DATABASE
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
