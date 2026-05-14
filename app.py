@@ -99,6 +99,12 @@ class DashboardFactory:
             return OwnerDashboard()
         return GuardDashboard()
 
+class Visitor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    contact = db.Column(db.String(100))
+    purpose = db.Column(db.String(100))
+    token = db.Column(db.String(100), unique=True)
 
 def create_app():
     app = Flask(__name__)
