@@ -2,9 +2,12 @@
 {% block content %}
 
         <div class="form-box active">
-            <a href="/view-logs">
-                <button class="btn">View Logs</button>
-            </a>
+        <h2>Guard Access</h2>
+
+        <form action="/search" method="POST">
+            <label for="code"></label><input type="text" name="code" id="code" placeholder="code" required>
+            <button type="submit">Search</button>
+        </form>
         </div>
 
 {% endblock %}

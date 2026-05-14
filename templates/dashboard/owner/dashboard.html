@@ -2,13 +2,25 @@
 {% block content %}
 
 
-        <div class="form-box active" id="form-box">
-            <h2>Visitor Info</h2>
-            <label for="name"></label><input type="text" name="name" id="name" placeholder="name" required>
-            <label for="contact"></label><input type="text" name="contact" id="contact" placeholder="contact" required>
-            <label for="visitor-password"></label><input type="password" name="password" id="register-password" placeholder="password" required>
+    <div class="form-box active" id="form-box">
+        <form action="{{ url_for('owner') }}" method="POST" novalidate>
+        <h2>Visitor Info</h2>
+        <label for="name"></label><input type="text" name="name" id="name" placeholder="name" required>
+        <label for="contact"></label><input type="text" name="contact" id="contact" placeholder="contact" required>
+        <label for="purpose"></label><input type="text" name="purpose" id="purpose" placeholder="purpose of visit" required>
+        <button type="submit">Submit to Generate code</button>
+        </form>
+    </div>
 
-            <button type="submit" name="submit">Submit</button>
-        </div>
+    <div class="form-box" id="form-box">
+    <h2>Visitor Registered</h2>
+
+    <p>Give this code to your visitor:</p>
+
+    <h1>{{ code }}</h1>
+
+    </div>
+
+
 
 {% endblock %}
