@@ -29,6 +29,12 @@ class User(UserMixin, db.Model):
     @property
     def password(self):
         raise AttributeError("Password is write-only")
+#VISITOR DATABASE
+class VisitorInfo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True, nullable=False)
+    contact = db.Column(db.String(64), unique=True, nullable=False)
+    purpose = db.Column(db.String(64), unique=True, nullable=False)
 
 
 # --- Authentication service abstraction and implementation ---
