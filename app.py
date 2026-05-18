@@ -135,7 +135,7 @@ def create_app():
     def index():
         return render_template("auth/login.html")
     #OWNER DASHBOARD
-    @app.route('/owner')
+    @app.route('/owner', methods=['GET', 'POST'])
     @login_required
     def owner():
         return render_template("dashboard/owner/dashboard.html")
