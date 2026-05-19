@@ -1,14 +1,104 @@
 {% extends "base.html" %}
 {% block content %}
 
-        <div class="form-box active">
-        <h2>Guard Access</h2>
+    <div class="form-box active" id="form-box" style="width: 100%; max-width: 500px; margin: auto; padding: 20px;">
+        <h2 style="text-align: center;">Guard Scanner</h2>
 
-        <form action="/search" method="POST">
-            <label for="code"></label><input type="text" name="code" id="code" placeholder="code" required>
-            <button type="submit">Search</button>
-        </form>
+        <!-- The Camera Window -->
+        <div id="reader" style="width: 100%; margin-top: 20px;"></div>
+
+        <!-- NEW: Manual Entry Fallback -->
+        <div style="margin-top: 20px; text-align: center; padding: 15px; border: 1px solid #ccc; border-radius: 8px;">
+            <p style="margin-bottom: 10px; font-size: 14px;">Camera not working? Enter code manually:</p>
+            <input type="text" id="manual-code" placeholder="e.g. 1234-abcd-..." style="padding: 8px; width: 70%;">
+            <button onclick="manualSubmit()" style="padding: 8px 15px; cursor: pointer;">Verify</button>
         </div>
 
-{% endblock %}
+        <!-- The Results Window -->
+        <div id="scan-result" style="margin-top: 20px; padding: 15px; border-radius: 8px; display: none; text-align: center;">
+        </div>
 
+        <br>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="{{ url_for('logout') }}"><button class="header-btn">Logout</button></a>
+        </div>
+    </div>
+
+    <!-- Load the Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <script>
+        const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+        let isProcessing = false;
+
+        // The core function that asks Flask for the data
+        function verifyCodeWithDatabase(codeToVerify) {
+            const resultDiv = document.getElementById('scan-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = "Verifying with database...";
+
+            fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: codeToVerify })
+            })
+            .then(response => {
+                // Check if Flask crashed
+                if (!response.ok) { throw new Error("Flask Server Error " + response.status); }
+                return response.json();
+            })
+            .then(data => {
+                if (data.valid) {
+                    resultDiv.style.backgroundColor = '#d4edda';
+                    resultDiv.style.color = '#155724';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Access Granted</h3>
+                        <p><strong>Name:</strong> ${data.name}</p>
+                        <p><strong>Purpose:</strong> ${data.purpose}</p>
+                        <p><strong>Contact:</strong> ${data.contact}</p>
+                    `;
+                } else {
+                    resultDiv.style.backgroundColor = '#f8d7da';
+                    resultDiv.style.color = '#721c24';
+                    resultDiv.innerHTML = `<h3>❌ Access Denied</h3><p>${data.message}</p>`;
+                }
+                resultDiv.innerHTML += `<br><button onclick="resumeScanning()" style="margin-top: 15px; padding: 8px;">Scan Next Person</button>`;
+            })
+            .catch(error => {
+                console.error('Server Error:', error);
+                resultDiv.style.backgroundColor = '#f8d7da';
+                resultDiv.color = '#721c24';
+                resultDiv.innerHTML = `<h3>❌ Server Error</h3><p>Check your PyCharm Terminal.</p><button onclick="resumeScanning()">Try Again</button>`;
+            });
+        }
+
+        // Triggered by the camera
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log("CAMERA READ SUCCESS! The code is: ", decodedText);
+            if (isProcessing) return;
+            isProcessing = true;
+            verifyCodeWithDatabase(decodedText);
+        }
+
+        // Triggered by the new button
+        function manualSubmit() {
+            if (isProcessing) return;
+            const code = document.getElementById('manual-code').value.trim();
+            if (!code) { alert("Please enter a code first!"); return; }
+
+            isProcessing = true;
+            html5QrcodeScanner.pause(true); // Pause camera while manually checking
+            verifyCodeWithDatabase(code);
+        }
+
+        function resumeScanning() {
+            document.getElementById('scan-result').style.display = 'none';
+            document.getElementById('manual-code').value = "";
+            isProcessing = false;
+            try { html5QrcodeScanner.resume(); } catch(e) {}
+        }
+
+        // Start camera silently
+        html5QrcodeScanner.render(onScanSuccess, function(error){});
+    </script>
+{% endblock %}

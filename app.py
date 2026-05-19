@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 import abc
 import uuid
+from flask import jsonify
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -242,6 +243,32 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.route('/api/verify', methods=['POST'])
+    @login_required
+    def verify_visitor():
+        data = request.get_json()
+        scanned_code = data.get('code')
+
+        visitor = VisitorInfo.query.filter_by(visitor_code=scanned_code).first()
+
+        if visitor:
+            # Check if they already used their code
+            if visitor.status == 'checked-in':
+                return jsonify({'valid': False, 'message': f'{visitor.name} has already been checked in!'})
+
+            # Update their status to checked-in
+            visitor.status = 'checked-in'
+            db.session.commit()
+
+            return jsonify({
+                'valid': True,
+                'name': visitor.name,
+                'purpose': visitor.purpose,
+                'contact': visitor.contact
+            })
+        else:
+            return jsonify({'valid': False, 'message': 'Invalid QR Code. Visitor not found.'})
     return app
 
 if __name__ == '__main__':
