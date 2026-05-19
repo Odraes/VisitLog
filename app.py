@@ -7,9 +7,9 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 import abc
 
-
 db = SQLAlchemy()
 login_manager = LoginManager()
+
 #LOGIN DATABASE
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -21,20 +21,31 @@ class User(UserMixin, db.Model):
     def set_password(self, password):
         """Hash and set the user's password."""
         self.password_hash = generate_password_hash(password)
-
     def check_password(self, password):
         """Check a plaintext password against the stored hash."""
         return check_password_hash(self.password_hash, password)
-
     @property
     def password(self):
         raise AttributeError("Password is write-only")
+
 #VISITOR DATABASE
 class VisitorInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, nullable=False)
+    name = db.Column(db.String(64), nullable=False)
     contact = db.Column(db.String(64), unique=True, nullable=False)
-    purpose = db.Column(db.String(64), unique=True, nullable=False)
+    purpose = db.Column(db.String(64), nullable=False)
+
+    def register_visitor(name, contact, purpose):
+        try:
+            visitor = VisitorInfo(name=name, contact=contact, purpose=purpose)
+            db.session.add(visitor)
+            db.session.commit()
+
+            return visitor, []
+
+        except IntegrityError:
+            db.session.rollback()
+            return None, ["Contact already exists"]
 
 
 # --- Authentication service abstraction and implementation ---
@@ -84,16 +95,13 @@ class BaseDashboard(abc.ABC):
     def render_redirect(self):
         pass
 
-
 class OwnerDashboard(BaseDashboard):
     def render_redirect(self):
         return redirect(url_for('owner'))
 
-
 class GuardDashboard(BaseDashboard):
     def render_redirect(self):
         return redirect(url_for('guard'))
-
 
 class DashboardFactory:
     @staticmethod
@@ -102,19 +110,10 @@ class DashboardFactory:
             return OwnerDashboard()
         return GuardDashboard()
 
-class Visitor(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    contact = db.Column(db.String(100))
-    purpose = db.Column(db.String(100))
-    token = db.Column(db.String(100), unique=True)
-
 def create_app():
-    app = Flask(__name__)
     app.config['SECRET_KEY'] = 'dev-secret-key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'login'
@@ -125,25 +124,33 @@ def create_app():
         try:
             db.session.execute(text("SELECT 1"))
             return {'db': 'ok'}, 200
-
         except Exception as e:
             return {'db': 'error', 'detail': str(e)}, 500
-
     with app.app_context():
         db.create_all()
-
     # services
     auth_service = SqlAlchemyAuthService()
-
 
     #HOME PAGE
     @app.route('/')
     def index():
         return render_template("auth/login.html")
+
     #OWNER DASHBOARD
     @app.route('/owner', methods=['GET', 'POST'])
     @login_required
     def owner():
+        error = []
+        if request.method == 'POST':
+            name = (request.form.get('username') or '').strip()
+            contact = (request.form.get('email') or '').strip()
+            purpose = (request.form.get('password') or '').strip()
+            if not error:
+                visitor, errs = auth_service.register(name=name, contact=contact, purpose=purpose)
+                if errs:
+                    error.extend(errs)
+                else:
+                    return redirect(url_for('visitorInfo'))
         return render_template("dashboard/owner/dashboard.html")
     #GUARD DASHBOARD
     @app.route('/guard')
@@ -156,24 +163,20 @@ def create_app():
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         error = []
-
         if request.method == 'POST':
             username = (request.form.get('username') or '').strip()
             email = (request.form.get('email') or '').strip()
             password = request.form.get('password') or ''
             confirm = request.form.get('confirm_password') or ''
             role = request.form.get('role') or ''
-
             if password != confirm:
                 error.append("Password and confirm password must match")
-
             if not error:
                 user, errs = auth_service.register(username=username, email=email, password=password, role=role)
                 if errs:
                     error.extend(errs)
                 else:
                     return redirect(url_for('login'))
-
         return render_template("auth/login.html", error=error)
 
 
@@ -181,11 +184,9 @@ def create_app():
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         error = []
-
         if request.method == 'POST':
             email = (request.form.get('email') or '').strip()
             password = request.form.get('password') or ''
-
             if not email:
                 error.append("Email must be provided")
             if not password:
@@ -198,7 +199,6 @@ def create_app():
                     login_user(user)
                     dashboard = DashboardFactory.for_role(user.role)
                     return dashboard.render_redirect()
-
         return render_template("auth/login.html", error=error)
 
 
