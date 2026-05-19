@@ -103,6 +103,10 @@ class GuardDashboard(BaseDashboard):
     def render_redirect(self):
         return redirect(url_for('guard'))
 
+class VisitorDashboard(BaseDashboard):
+    def render_redirect(self):
+        return redirect(url_for('visitorInfo'))
+
 class DashboardFactory:
     @staticmethod
     def for_role(role):
