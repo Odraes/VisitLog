@@ -176,7 +176,6 @@ def create_app():
     @app.route('/visitor')
     @login_required  # Good practice to protect this route too!
     def visitor():
-        # Use .all() to get a list of every visitor in the database
         visitor_list = VisitorInfo.query.all()
         return render_template("dashboard/visitor/visitorInfo.html", visitors=visitor_list)
 
