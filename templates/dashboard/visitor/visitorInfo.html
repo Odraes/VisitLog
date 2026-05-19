@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div class="form-box active" id="form-box">
+
+        <h2>Recent Visitors</h2>
+
+        {% for visitor in visitors %}
+            <div class="visitor-card" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                <!-- Use {{ }} to print the specific data -->
+                <p><strong>Name:</strong> {{ visitor.name }}</p>
+                <p><strong>Purpose:</strong> {{ visitor.purpose }}</p>
+                <p><strong>Status:</strong> {{ visitor.status }}</p>
+                <p><strong>Unique Code:</strong> {{ visitor.visitor_code }}</p>
+            </div>
+        {% endfor %}
+
+        <br>
+        <a href="{{ url_for('logout') }}">
+            <button class="header-btn">Logout</button>
+        </a>
+
+    </div>
+
+{% endblock %}

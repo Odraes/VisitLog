@@ -6,6 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 import abc
+import uuid
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -31,21 +32,29 @@ class User(UserMixin, db.Model):
 #VISITOR DATABASE
 class VisitorInfo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
+    # 1. ADD THIS: The unique code that the QR code will use
+    visitor_code = db.Column(db.String(36), unique=True, default=lambda: str(uuid.uuid4()))
+
     name = db.Column(db.String(64), nullable=False)
-    contact = db.Column(db.String(64), unique=True, nullable=False)
+    # 2. FIX: Remove unique=True from contact. A person might visit the campus twice!
+    contact = db.Column(db.String(64), nullable=False)
     purpose = db.Column(db.String(64), nullable=False)
 
+    # 3. ADD THIS: To track if they have entered the campus yet
+    status = db.Column(db.String(20), default='pending')
+
+    # 4. FIX: Add @staticmethod so you can call this directly on the class
+    @staticmethod
     def register_visitor(name, contact, purpose):
         try:
             visitor = VisitorInfo(name=name, contact=contact, purpose=purpose)
             db.session.add(visitor)
             db.session.commit()
-
             return visitor, []
-
         except IntegrityError:
             db.session.rollback()
-            return None, ["Contact already exists"]
+            return None, ["Database error occurred"]
 
 
 # --- Authentication service abstraction and implementation ---
@@ -103,10 +112,6 @@ class GuardDashboard(BaseDashboard):
     def render_redirect(self):
         return redirect(url_for('guard'))
 
-class VisitorDashboard(BaseDashboard):
-    def render_redirect(self):
-        return redirect(url_for('visitorInfo'))
-
 class DashboardFactory:
     @staticmethod
     def for_role(role):
@@ -115,6 +120,7 @@ class DashboardFactory:
         return GuardDashboard()
 
 def create_app():
+    app = Flask(__name__)
     app.config['SECRET_KEY'] = 'dev-secret-key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -146,22 +152,33 @@ def create_app():
     def owner():
         error = []
         if request.method == 'POST':
-            name = (request.form.get('username') or '').strip()
-            contact = (request.form.get('email') or '').strip()
-            purpose = (request.form.get('password') or '').strip()
+            name = (request.form.get('name') or '').strip()
+            contact = (request.form.get('contact') or '').strip()
+            purpose = (request.form.get('purpose') or '').strip()
+
+            if not name or not contact or not purpose:
+                error.append("All fields are required.")
+
             if not error:
-                visitor, errs = auth_service.register(name=name, contact=contact, purpose=purpose)
+                visitor, errs = VisitorInfo.register_visitor(name=name, contact=contact, purpose=purpose)
                 if errs:
                     error.extend(errs)
                 else:
-                    return redirect(url_for('visitorInfo'))
-        return render_template("dashboard/owner/dashboard.html")
+                    return redirect(url_for('visitor', new_code=visitor.visitor_code))
+
+        return render_template("dashboard/owner/dashboard.html", error=error)
     #GUARD DASHBOARD
     @app.route('/guard')
     @login_required
     def guard():
         return render_template("dashboard/guard/dashboard.html")
 
+    @app.route('/visitor')
+    @login_required  # Good practice to protect this route too!
+    def visitor():
+        # Use .all() to get a list of every visitor in the database
+        visitor_list = VisitorInfo.query.all()
+        return render_template("dashboard/visitor/visitorInfo.html", visitors=visitor_list)
 
     #REGISTER DASHBOARD
     @app.route('/register', methods=['GET', 'POST'])
@@ -217,7 +234,6 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
-
     return app
 
 if __name__ == '__main__':
