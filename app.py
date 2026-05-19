@@ -137,7 +137,8 @@ def create_app():
         except Exception as e:
             return {'db': 'error', 'detail': str(e)}, 500
     with app.app_context():
-        db.create_all()
+        if not os.path.exists("app.db"):
+            db.create_all()
     # services
     auth_service = SqlAlchemyAuthService()
 
