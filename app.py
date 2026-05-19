@@ -176,12 +176,19 @@ def create_app():
         return render_template("dashboard/guard/dashboard.html")
 
     @app.route('/visitor')
-    @login_required  # Good practice to protect this route too!
+    @login_required
     def visitor():
-        visitor_list = VisitorInfo.query.all()
-        return render_template("dashboard/visitor/visitorInfo.html", visitors=visitor_list)
+        # 1. Catch the code from the URL
+        new_code = request.args.get('new_code')
 
-    #REGISTER DASHBOARD
+        # 2. If a code exists, find that specific visitor
+        if new_code:
+            single_visitor = VisitorInfo.query.filter_by(visitor_code=new_code).first()
+            # Pass only the single object, not a list
+            return render_template("dashboard/visitor/visitorInfo.html", visitor=single_visitor)
+
+        # 3. If someone goes to /visitor directly without registering anyone, send them back
+        return redirect(url_for('owner'))    #REGISTER DASHBOARD
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         error = []

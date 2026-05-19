@@ -3,21 +3,26 @@
 
     <div class="form-box active" id="form-box">
 
-        <h2>Recent Visitors</h2>
+        <h2>Visitor Registered Successfully!</h2>
 
-        {% for visitor in visitors %}
-            <div class="visitor-card" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+        {% if visitor %}
+            <div class="visitor-card" style="border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;">
                 <p><strong>Name:</strong> {{ visitor.name }}</p>
                 <p><strong>Contact:</strong> {{ visitor.contact }}</p>
                 <p><strong>Purpose:</strong> {{ visitor.purpose }}</p>
                 <p><strong>Status:</strong> {{ visitor.status }}</p>
-                <p><strong>Unique Code:</strong> {{ visitor.visitor_code }}</p>
+
+                <hr>
+                <p><small><strong>Secret Code:</strong> <span id="visitor-code">{{ visitor.visitor_code }}</span></small></p>
+
+                <!-- This empty div is exactly where we will put the QR Code image! -->
+                <div id="qrcode"></div>
             </div>
-        {% endfor %}
+        {% endif %}
 
         <br>
         <a href="{{ url_for('owner') }}">
-            <button class="header-btn">Back</button>
+            <button class="header-btn" style="margin-right: 10px; margin-bottom: 5px;">Register Another</button>
         </a>
 
     </div>
