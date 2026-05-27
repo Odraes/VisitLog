@@ -56,6 +56,7 @@
                         <p><strong>Name:</strong> ${data.name}</p>
                         <p><strong>Purpose:</strong> ${data.purpose}</p>
                         <p><strong>Contact:</strong> ${data.contact}</p>
+                        ${data.image_url ? `<div style="margin-top:10px;"><strong>ID Image:</strong><br><img src="${data.image_url}" alt="ID Image" style="max-width:200px; border:1px solid #ccc; margin-top:8px;"/></div>` : ''}
                     `;
                 } else {
                     resultDiv.style.backgroundColor = '#f8d7da';

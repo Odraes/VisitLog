@@ -10,6 +10,13 @@
                 <p><strong>Contact:</strong> {{ visitor.contact }}</p>
                 <p><strong>Purpose:</strong> {{ visitor.purpose }}</p>
 
+                {% if visitor.id_image %}
+                    <div style="margin-top:10px;">
+                        <strong>ID Image:</strong><br>
+                        <img src="{{ url_for('static', filename='uploads/' ~ visitor.id_image) }}" alt="Visitor ID" style="max-width:200px; border:1px solid #ccc; margin-top:8px;"/>
+                    </div>
+                {% endif %}
+
                 <hr>
                 <!-- This empty div is where the QR code will appear -->
                 <div id="qrcode" style="margin: 20px auto; display: flex; justify-content: center;"></div>

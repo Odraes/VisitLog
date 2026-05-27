@@ -1,4 +1,4 @@
-import os.path
+import os
 import re
 from flask import Flask, render_template, url_for, request, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -6,6 +6,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import abc
 import uuid
 from flask import jsonify
@@ -42,15 +43,17 @@ class VisitorInfo(db.Model):
     # 2. FIX: Remove unique=True from contact. A person might visit the campus twice!
     contact = db.Column(db.String(64), nullable=False)
     purpose = db.Column(db.String(64), nullable=False)
+    # Optional path/filename for uploaded ID image (stored under static/uploads)
+    id_image = db.Column(db.String(255), nullable=True)
 
     # 3. ADD THIS: To track if they have entered the campus yet
     status = db.Column(db.String(20), default='pending')
 
     # 4. FIX: Add @staticmethod so you can call this directly on the class
     @staticmethod
-    def register_visitor(name, contact, purpose):
+    def register_visitor(name, contact, purpose, id_image=None):
         try:
-            visitor = VisitorInfo(name=name, contact=contact, purpose=purpose)
+            visitor = VisitorInfo(name=name, contact=contact, purpose=purpose, id_image=id_image)
             db.session.add(visitor)
             db.session.commit()
             return visitor, []
@@ -126,6 +129,9 @@ def create_app():
     app.config['SECRET_KEY'] = 'dev-secret-key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # Uploads
+    app.config['UPLOAD_FOLDER'] = 'static/uploads'
+    os.makedirs(os.path.join(app.root_path, app.config['UPLOAD_FOLDER']), exist_ok=True)
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'login'
@@ -159,11 +165,22 @@ def create_app():
             contact = (request.form.get('contact') or '').strip()
             purpose = (request.form.get('purpose') or '').strip()
 
+            # Handle optional uploaded ID image
+            id_image_file = request.files.get('id_image')
+            saved_filename = None
+
+            if id_image_file and id_image_file.filename:
+                # secure and unique filename
+                original = secure_filename(id_image_file.filename)
+                saved_filename = f"{uuid.uuid4().hex}_{original}"
+                upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'], saved_filename)
+                id_image_file.save(upload_path)
+
             if not name or not contact or not purpose:
                 error.append("All fields are required.")
 
             if not error:
-                visitor, errs = VisitorInfo.register_visitor(name=name, contact=contact, purpose=purpose)
+                visitor, errs = VisitorInfo.register_visitor(name=name, contact=contact, purpose=purpose, id_image=saved_filename)
                 if errs:
                     error.extend(errs)
                 else:
@@ -261,11 +278,17 @@ def create_app():
             visitor.status = 'checked-in'
             db.session.commit()
 
+            # Build image URL if present (served from static/uploads)
+            image_url = None
+            if visitor.id_image:
+                image_url = url_for('static', filename=f"uploads/{visitor.id_image}")
+
             return jsonify({
                 'valid': True,
                 'name': visitor.name,
                 'purpose': visitor.purpose,
-                'contact': visitor.contact
+                'contact': visitor.contact,
+                'image_url': image_url
             })
         else:
             return jsonify({'valid': False, 'message': 'Invalid QR Code. Visitor not found.'})

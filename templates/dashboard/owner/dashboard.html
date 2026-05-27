@@ -3,11 +3,12 @@
 
 
     <div class="form-box active" id="form-box">
-        <form action="{{ url_for('owner') }}" method="POST" novalidate>
+        <form action="{{ url_for('owner') }}" method="POST" enctype="multipart/form-data" novalidate>
         <h2>Add Visitor Info</h2>
         <label for="name"></label><input type="text" name="name" id="name" placeholder="name" required>
         <label for="contact"></label><input type="text" name="contact" id="contact" placeholder="contact" required>
         <label for="purpose"></label><input type="text" name="purpose" id="purpose" placeholder="purpose of visit" required>
+        <label for="id_image"></label><input type="file" name="id_image" id="id_image" accept="image/*">
         <button type="submit">Submit to Generate code</button>
         </form>
     </div>
